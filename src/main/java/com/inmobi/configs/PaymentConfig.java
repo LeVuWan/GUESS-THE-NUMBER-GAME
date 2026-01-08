@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -19,8 +20,8 @@ import jakarta.servlet.http.HttpServletRequest;
 public class PaymentConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     public static String vnp_ReturnUrl = "http://localhost:8080/vnpay_jsp/vnpay_return.jsp";
-    public static String vnp_TmnCode = "2QXUI4J4";
-    public static String secretKey = "SECRETKEY123456789";
+    public static String vnp_TmnCode = "1B2SZ6K3";
+    public static String secretKey = "LVEEHCNJ1WJ2VGYHRNVEOJ6WUNQOXY26";
     public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 
     public static String md5(String message) {
@@ -59,7 +60,6 @@ public class PaymentConfig {
         return digest;
     }
 
-    // Util for VNPAY
     public static String hashAllFields(Map fields) {
         List fieldNames = new ArrayList(fields.keySet());
         Collections.sort(fieldNames);
@@ -125,4 +125,5 @@ public class PaymentConfig {
         }
         return sb.toString();
     }
+
 }

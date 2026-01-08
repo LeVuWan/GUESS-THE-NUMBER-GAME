@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 public class PaymentDto implements Serializable {
     private Long amount;
-    private String bankCode;
     private String language;
 
     public Long getAmount() {
@@ -13,14 +12,6 @@ public class PaymentDto implements Serializable {
 
     public void setAmount(Long amount) {
         this.amount = amount;
-    }
-
-    public String getBankCode() {
-        return bankCode;
-    }
-
-    public void setBankCode(String bankCode) {
-        this.bankCode = bankCode;
     }
 
     public String getLanguage() {

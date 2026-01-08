@@ -25,7 +25,8 @@ public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/auth/login",
             "/auth/register",
-            "/auth/token"
+            "/auth/token",
+
     };
 
     @Bean
@@ -51,7 +52,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "/vnpay_jsp/vnpay_return.jsp").permitAll()
                         .anyRequest().authenticated());
 
         http.oauth2ResourceServer(oauth2 -> oauth2

@@ -13,6 +13,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.UnexpectedTypeException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -69,6 +70,32 @@ public class GlobalExceptionHandler {
         if (ex instanceof MethodArgumentTypeMismatchException) {
             res.setMessage(" Failed to convert value of type");
         }
+        return res;
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingServletRequestParameter(
+            org.springframework.web.bind.MissingServletRequestParameterException ex,
+            WebRequest request) {
+        ErrorResponse res = new ErrorResponse();
+        res.setTimestamp(new Date());
+        res.setStatus(HttpStatus.BAD_REQUEST.value());
+        res.setPath(request.getDescription(false).replace("uri=", ""));
+        res.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        res.setMessage("Missing required parameter: " + ex.getParameterName());
+        return res;
+    }
+
+    @ExceptionHandler(UnexpectedTypeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleUnexpectedType(UnexpectedTypeException ex, WebRequest request) {
+        ErrorResponse res = new ErrorResponse();
+        res.setTimestamp(new Date());
+        res.setStatus(HttpStatus.BAD_REQUEST.value());
+        res.setPath(request.getDescription(false).replace("uri=", ""));
+        res.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        res.setMessage("Unexpected type: " + ex.getMessage());
         return res;
     }
 }

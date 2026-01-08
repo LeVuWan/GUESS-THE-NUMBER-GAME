@@ -1,8 +1,13 @@
 package com.inmobi.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 
 @Entity(name = "tbl_users")
 public class User extends AbstractEntity implements Serializable {
@@ -18,6 +23,9 @@ public class User extends AbstractEntity implements Serializable {
     private Integer turn;
 
     private String refreshToken;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Payment> payments = new ArrayList<>();
 
     public User() {
     }
@@ -68,6 +76,14 @@ public class User extends AbstractEntity implements Serializable {
 
     public void setTurn(Integer turn) {
         this.turn = turn;
+    }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
     }
 
 }
