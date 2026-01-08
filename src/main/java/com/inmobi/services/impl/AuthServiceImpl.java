@@ -1,0 +1,114 @@
+package com.inmobi.services.impl;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.inmobi.Exception.DuplicateUsernameException;
+import com.inmobi.Exception.ResourceNotFoundException;
+import com.inmobi.Exception.UnauthenticationException;
+import com.inmobi.dtos.req.LoginDto;
+import com.inmobi.dtos.req.RegisterDto;
+import com.inmobi.dtos.res.LoginResponse;
+import com.inmobi.models.User;
+import com.inmobi.repositories.UserRepository;
+import com.inmobi.services.AuthService;
+
+@Service
+public class AuthServiceImpl implements AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final byte[] secretKey;
+
+    public AuthServiceImpl(
+            UserRepository userRepository,
+            @Value("${jwt.secret}") String secret) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder(10);
+        this.secretKey = secret.getBytes(StandardCharsets.UTF_8);
+    }
+
+    public LoginResponse login(LoginDto request) {
+
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Username or password incorrect"));
+
+        Boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+
+        if (!authenticated) {
+            throw new UnauthenticationException("Username or password incorrect");
+        }
+
+        String accessToken = generateRefreshTokenJwt(user, Duration.ofMinutes(15), "access");
+        String refreshToken = generateRefreshTokenJwt(user, Duration.ofDays(7), "refresh");
+
+        user.setRefreshToken(refreshToken);
+
+        userRepository.save(user);
+
+        return new LoginResponse(accessToken, refreshToken, authenticated);
+    }
+
+    private String generateRefreshTokenJwt(User user, Duration ttl, String keyType) {
+        try {
+            Instant now = Instant.now();
+
+            JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                    .subject(user.getUsername())
+                    .claim("userId", user.getId())
+                    .claim("username", user.getUsername())
+                    .claim("token_type", keyType)
+                    .issueTime(Date.from(now))
+                    .expirationTime(Date.from(now.plus(ttl)))
+                    .build();
+
+            JWSObject jwsObject = new JWSObject(
+                    new JWSHeader.Builder(JWSAlgorithm.HS256)
+                            .type(JOSEObjectType.JWT)
+                            .build(),
+                    new Payload(claims.toJSONObject()));
+
+            jwsObject.sign(new MACSigner(secretKey));
+            return jwsObject.serialize();
+
+        } catch (JOSEException e) {
+            throw new RuntimeException("Failed to generate refresh token", e);
+        }
+    }
+
+    @Override
+    public void register(RegisterDto request) {
+        Optional<User> userExist = userRepository.findByUsername(request.getUsername());
+
+        if (userExist.isPresent()) {
+            throw new DuplicateUsernameException("Username already exists");
+        }
+
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setScore(0);
+        newUser.setTurn(5);
+
+        userRepository.save(newUser);
+    }
+
+}
