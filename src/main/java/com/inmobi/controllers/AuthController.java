@@ -1,9 +1,11 @@
 package com.inmobi.controllers;
 
+import java.text.ParseException;
 import java.util.DuplicateFormatFlagsException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,10 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.inmobi.Exception.ResourceNotFoundException;
 import com.inmobi.Exception.UnauthenticationException;
 import com.inmobi.dtos.req.LoginDto;
+import com.inmobi.dtos.req.RefreshTokenDto;
 import com.inmobi.dtos.req.RegisterDto;
 import com.inmobi.dtos.res.ResponseData;
 import com.inmobi.dtos.res.ResponseError;
 import com.inmobi.services.AuthService;
+import com.nimbusds.jose.JOSEException;
 
 import jakarta.validation.Valid;
 
@@ -51,6 +55,20 @@ public class AuthController {
         } catch (Exception e) {
             return new ResponseError(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     "Registration failed: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseData<?> refreshToken(@RequestBody RefreshTokenDto dto) {
+        try {
+            String accessToken = authService.refreshToken(dto.getRefreshToken());
+            return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Get access token success", accessToken);
+        } catch (ParseException e) {
+            return new ResponseError(HttpStatus.BAD_GATEWAY.value(), e.getMessage());
+        } catch (JOSEException e) {
+            return new ResponseError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+        } catch (Exception e) {
+            return new ResponseError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
         }
     }
 }

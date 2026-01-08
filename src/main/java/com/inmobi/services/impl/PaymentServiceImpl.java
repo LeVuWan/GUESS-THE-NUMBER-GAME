@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -80,7 +79,7 @@ public class PaymentServiceImpl implements PaymentService {
                 vnp_Params.put("vnp_Version", vnp_Version);
                 vnp_Params.put("vnp_Command", vnp_Command);
                 vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-                vnp_Params.put("vnp_Amount", String.valueOf(amount * 1000));
+                vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
                 vnp_Params.put("vnp_CurrCode", "VND");
                 vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
                 vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);

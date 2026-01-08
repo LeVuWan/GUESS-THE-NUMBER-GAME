@@ -1,6 +1,7 @@
 package com.inmobi.services.impl;
 
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,9 +20,12 @@ import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.inmobi.Exception.DuplicateUsernameException;
 import com.inmobi.Exception.ResourceNotFoundException;
 import com.inmobi.Exception.UnauthenticationException;
@@ -109,6 +114,46 @@ public class AuthServiceImpl implements AuthService {
         newUser.setTurn(5);
 
         userRepository.save(newUser);
+    }
+
+    public String refreshToken(String refreshToken) throws ParseException, JOSEException {
+
+        JWTClaimsSet claims = verifyRefreshToken(refreshToken, "refresh");
+
+        String username = claims.getSubject();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return generateRefreshTokenJwt(user, Duration.ofMinutes(15), "access");
+    }
+
+    public JWTClaimsSet verifyRefreshToken(String refreshToken, String expectedTokenType)
+            throws ParseException, JOSEException {
+
+        SignedJWT signedJWT = SignedJWT.parse(refreshToken);
+
+        JWSVerifier verifier = new MACVerifier(secretKey);
+
+        if (!signedJWT.verify(verifier)) {
+            throw new RuntimeException("Invalid refresh token signature");
+        }
+
+        JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+
+        Date expirationTime = claims.getExpirationTime();
+
+        if (expirationTime == null || expirationTime.before(new Date())) {
+            throw new RuntimeException("Refresh token expired");
+        }
+
+        String tokenType = claims.getStringClaim("token_type");
+        if (!expectedTokenType.equals(tokenType)) {
+            throw new RuntimeException("Invalid token type");
+        }
+
+        return claims;
+
     }
 
 }
