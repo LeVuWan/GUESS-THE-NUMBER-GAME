@@ -8,6 +8,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Version;
 
 @Entity(name = "tbl_users")
 public class User extends AbstractEntity implements Serializable {
@@ -23,6 +24,9 @@ public class User extends AbstractEntity implements Serializable {
     private Integer turn;
 
     private String refreshToken;
+
+    @Version
+    private Integer version;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
