@@ -4,6 +4,8 @@ import java.text.ParseException;
 import java.util.DuplicateFormatFlagsException;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.inmobi.Exception.ResourceNotFoundException;
 import com.inmobi.Exception.UnauthenticationException;
 import com.inmobi.dtos.req.LoginDto;
+import com.inmobi.dtos.req.LogoutDto;
 import com.inmobi.dtos.req.RefreshTokenDto;
 import com.inmobi.dtos.req.RegisterDto;
 import com.inmobi.dtos.res.ResponseData;
@@ -63,10 +66,25 @@ public class AuthController {
         try {
             String accessToken = authService.refreshToken(dto.getRefreshToken());
             return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Get access token success", accessToken);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         } catch (ParseException e) {
-            return new ResponseError(HttpStatus.BAD_GATEWAY.value(), e.getMessage());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         } catch (JOSEException e) {
             return new ResponseError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+        } catch (Exception e) {
+            return new ResponseError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseData<?> logout(@RequestBody LogoutDto dto, @AuthenticationPrincipal Jwt jwt) {
+        try {
+            Long userId = Long.parseLong(jwt.getClaims().get("userId").toString());
+            authService.logout(userId);
+            return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Logout success");
+        } catch (ResourceNotFoundException e) {
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         } catch (Exception e) {
             return new ResponseError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
         }

@@ -62,8 +62,8 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthenticationException("Username or password incorrect");
         }
 
-        String accessToken = generateRefreshTokenJwt(user, Duration.ofMinutes(15), "access");
-        String refreshToken = generateRefreshTokenJwt(user, Duration.ofDays(7), "refresh");
+        String accessToken = generateTokenJwt(user, Duration.ofMinutes(15), "access");
+        String refreshToken = generateTokenJwt(user, Duration.ofDays(7), "refresh");
 
         user.setRefreshToken(refreshToken);
 
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         return new LoginResponse(accessToken, refreshToken, authenticated);
     }
 
-    private String generateRefreshTokenJwt(User user, Duration ttl, String keyType) {
+    private String generateTokenJwt(User user, Duration ttl, String keyType) {
         try {
             Instant now = Instant.now();
 
@@ -122,10 +122,18 @@ public class AuthServiceImpl implements AuthService {
 
         String username = claims.getSubject();
 
+        User existUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (existUser.getRefreshToken() == null ||
+                !refreshToken.equals(existUser.getRefreshToken())) {
+            throw new JOSEException("Refresh token revoked or invalid");
+        }
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return generateRefreshTokenJwt(user, Duration.ofMinutes(15), "access");
+        return generateTokenJwt(user, Duration.ofMinutes(15), "access");
     }
 
     public JWTClaimsSet verifyRefreshToken(String refreshToken, String expectedTokenType)
@@ -154,6 +162,16 @@ public class AuthServiceImpl implements AuthService {
 
         return claims;
 
+    }
+
+    @Override
+    public void logout(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setRefreshToken(null);
+        userRepository.save(user);
     }
 
 }

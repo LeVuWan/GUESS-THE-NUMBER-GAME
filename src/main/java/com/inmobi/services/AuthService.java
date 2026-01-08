@@ -13,4 +13,6 @@ public interface AuthService {
     void register(RegisterDto request);
 
     String refreshToken(String refreshToken) throws ParseException, ParseException, JOSEException;
+
+    void logout(Long accessToken);
 }
