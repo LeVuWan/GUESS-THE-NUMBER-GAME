@@ -9,8 +9,6 @@ import com.inmobi.dtos.res.UserDetailRes;
 public interface UserService {
     TurnResponse userTurn(Long userId, int userGuess);
 
-    void create100Users();
-
     List<GetTopUsersByScore> getTop10UsersByScore();
 
     UserDetailRes getUserDetail(Long id);

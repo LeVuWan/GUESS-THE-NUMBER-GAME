@@ -40,6 +40,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+        }
+
         if (user.getTurn() <= 0) {
             throw new TurnOverException("You've run out of turns. Buy more!");
         }
@@ -80,29 +85,6 @@ public class UserServiceImpl implements UserService {
             result = random.nextInt(5) + 1;
         } while (result == userGuess);
         return result;
-    }
-
-    @Override
-    @Transactional
-    public void create100Users() {
-        long startIndex = userRepository
-                .findTopByOrderByIdDesc()
-                .map(User::getId)
-                .orElse(0L);
-
-        List<User> users = new ArrayList<>(100);
-
-        for (int i = 1; i <= 10000; i++) {
-            User user = new User();
-
-            user.setUsername("user_" + (startIndex + i));
-            user.setScore(ThreadLocalRandom.current().nextInt(20, 31));
-            user.setTurn(0);
-
-            users.add(user);
-        }
-
-        userRepository.saveAll(users);
     }
 
     @Override

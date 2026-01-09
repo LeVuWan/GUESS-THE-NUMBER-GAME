@@ -49,14 +49,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/create")
-    public ResponseData<?> userTurn() {
-        userService.create100Users();
-        return new ResponseData<>(HttpStatus.CREATED.value(), "Create success");
-
-    }
-
-    @GetMapping("/get-top-10-users-by-score")
+    @GetMapping("/leadbord")
     public ResponseData<?> getTop10UsersByScore() {
         try {
             return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User turn processed",
