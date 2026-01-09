@@ -1,0 +1,282 @@
+{
+  "info": {
+    "_postman_id": "68c972e3-467e-413d-9060-66cb8c13fe74",
+    "name": "Guess The Number API",
+    "description": "Collection to test GUESS-THE-NUMBER-GAME APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "id": "c0465991-7930-4044-97b8-b94d4be22314",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"username\": \"{{username}}\", \"password\": \"{{password}}\" }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var json = pm.response.json();",
+              "if (json && json.data) {",
+              "  pm.environment.set('accessToken', json.data.accesstToken || '');",
+              "  pm.environment.set('refreshToken', json.data.refreshToken || '');",
+              "  console.log('Saved accessToken and refreshToken to environment');",
+              "}"
+            ],
+            "type": "text/javascript",
+            "id": "ca0331e4-6f16-40ea-846d-7e9a7a42440a"
+          }
+        }
+      ],
+      "id": "d2f6dd80-e762-4bc0-af35-0b11c3d28174",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"username\": \"{{username}}\", \"password\": \"{{password}}\" }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Current User",
+      "id": "7e3765db-77d1-45da-b7b3-78840cbbf836",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/user/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Turn",
+      "id": "171737c1-9f78-45a3-a64e-763677eccdcd",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"userGuess\": 3 }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/user/turn",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user",
+            "turn"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Leaderboard",
+      "id": "6c88b7a5-fe1e-4989-9bd1-3b99cd9522c4",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/user/leadbord",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user",
+            "leadbord"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create VnPay Payment",
+      "id": "7df48ad1-324f-4ee4-b3dd-ca6ed360c77f",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vnpay/create-payment?amount=10000&language=vn",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vnpay",
+            "create-payment"
+          ],
+          "query": [
+            {
+              "key": "amount",
+              "value": "10000"
+            },
+            {
+              "key": "language",
+              "value": "vn"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Refresh Token",
+      "id": "78227f96-2376-4ae0-a560-a6f2c3a40638",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"refreshToken\": \"{{refreshToken}}\" }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/refresh-token",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "refresh-token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Logout",
+      "id": "eb5d1a68-8f61-4ec2-9426-16947764c22a",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"accessToken\": \"{{accessToken}}\" }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer"
+  },
+  "variable": [
+    {
+      "id": "8e57cf24-d1c1-4e52-a034-c7a250b9f985",
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "id": "bfe184d5-b9f7-49b6-af65-3b715796fb03",
+      "key": "username",
+      "value": "testuser"
+    },
+    {
+      "id": "76e74a91-1963-48b6-a563-f7d397d7d01f",
+      "key": "password",
+      "value": "123456"
+    },
+    {
+      "id": "355598f5-9c3e-4c43-81cc-96610d23c631",
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "id": "cfc04da0-0e6a-4288-93c6-e95346e0cc2e",
+      "key": "refreshToken",
+      "value": ""
+    }
+  ]
+}
